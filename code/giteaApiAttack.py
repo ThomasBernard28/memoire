@@ -1,3 +1,4 @@
+import requests
 from ApiInterrogator import ApiInterrogator
 from datetime import datetime
 
@@ -27,7 +28,6 @@ if __name__ == "__main__":
     else:
         print("Error:", response.status_code, response.text)
 
-
     # Search repositories
 
     repositories = []
@@ -35,6 +35,9 @@ if __name__ == "__main__":
     for i in range(1, 10):
         print(f"Page {i}")
         params = {
+            'q': '.gitea',
+            'archived': False,
+            'mode': 'source',
             'sort': 'stars',
             'order': 'desc',
             'limit': 20,

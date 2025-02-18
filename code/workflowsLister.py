@@ -1,5 +1,6 @@
 import requests as rq
 import pandas as pd
+import ast
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def get_repo_contents(owner, repo, headers, url):
@@ -20,10 +21,11 @@ def check_workflows_in_gitea(repo, headers, url):
     return None
 
 def save_repositories_to_csv(filename, headers, url):
-    repos = pd.read_csv(f"data/{filename}.csv")
+    repos = pd.read_csv(f"../data/{filename}.csv")
     results = []
     for i in range(len(repos)):
-        repo = repos.iloc[i]
+        repo = repos.iloc[i].to_dict()
+        repo['owner'] = ast.literal_eval(repo['owner'])
         with ThreadPoolExecutor(max_workers=10) as executor:
             futures = [executor.submit(check_workflows_in_gitea, repo, headers, url)]
             for future in as_completed(futures):

@@ -32,7 +32,7 @@ def get_all_repositories(headers, url):
 def save_repositories_to_csv(filename, headers, url):
     repos_list = get_all_repositories(headers, url)
     df = pd.DataFrame(repos_list)
-    df.to_csv(f"data/{filename}.csv", index=False)
+    df.to_csv(f"../data/{filename}.csv", index=False)
 
 
 

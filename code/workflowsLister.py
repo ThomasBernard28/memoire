@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def get_repo_contents(owner, repo, headers, url):
     # Get all files in a repository
-    response = rq.get(f"{url}/repos/{owner}/{repo}/contents/.gitea/workflows", headers=headers)
+    response = rq.get(f"{url}/repos/{owner}/{repo}/contents/.woodpecker", headers=headers)
     return response
 
 def check_workflows_in_gitea(repo, headers, url):
@@ -15,9 +15,11 @@ def check_workflows_in_gitea(repo, headers, url):
     if contents.status_code == 200:
         contents = contents.json()
         for item in contents:
-            if item['type'] == 'dir' and item['name'] == '.gitea/workflows':
+            if item['type'] == 'dir' and item['name'] == '.woodpecker':
                 return repo
-            elif item['type'] == 'file' and '.gitea/workflows' in item['path']:
+            elif item['type'] == 'file' and item['name'] == '.woodpecker.yaml':
+                return repo
+            elif item['type'] == 'file' and '.woodpecker/' in item['path']:
                 return repo
     return None
 

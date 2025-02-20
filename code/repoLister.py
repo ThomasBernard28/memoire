@@ -23,9 +23,10 @@ def get_all_repositories(headers, url):
                 break
             page += 1
 
-    filtered_repositories = [repo for repo in repositories if datetime.strptime(repo['updated_at'], "%Y-%m-%dT%H:%M:%SZ") > LIMIT_DATE and not repo['empty']]
+    no_empty_filter = [repo for repo in repositories if not repo['empty']]
+    #filtered_repositories = [repo for repo in repositories if datetime.strptime(repo['updated_at'], "%Y-%m-%dT%H:%M:%SZ") > LIMIT_DATE and not repo['empty']]
 
-    return filtered_repositories
+    return no_empty_filter
 
 def save_repositories_to_csv(filename, headers, url):
     repos_list = get_all_repositories(headers, url)

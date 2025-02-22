@@ -1,3 +1,4 @@
+import json
 import requests as rq
 import pandas as pd
 from datetime import datetime
@@ -31,6 +32,7 @@ def get_all_repositories(headers, url):
 def save_repositories_to_csv(filename, headers, url):
     repos_list = get_all_repositories(headers, url)
     df = pd.DataFrame(repos_list)
+    df['owner'] = df['owner'].apply(json.dumps)
     df.to_csv(f"../data/{filename}.csv", index=False)
 
 

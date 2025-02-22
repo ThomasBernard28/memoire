@@ -4,7 +4,7 @@ import ast
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def save_repositories_to_csv(filename, headers, url, ci_service):
-    repos = pd.read_csv(f"../data/{filename}.csv")
+    repos = pd.read_csv(f"../data/{filename}.csv", low_memory=False)
     results = []
 
     repo_list = []
@@ -24,14 +24,24 @@ def save_repositories_to_csv(filename, headers, url, ci_service):
                 results.append(result)
 
     df = pd.DataFrame(results)
-    df.to_csv(f"../data/gitea_repos_with_woodpecker.csv", index=False)
-
+    df.to_csv(f"../data/gitea_repos_with_aws.csv", index=False)
 
 def check_ci_service_in_gitea(repo, headers, url, ci_service):
-    if ci_service == 'gitea':
-        return check_workflows_in_gitea(repo, headers, url)
-    elif ci_service == "woodpecker":
-        return check_workflows_in_woodpecker(repo, headers, url)
+    match ci_service:
+        case "gitea":
+            return check_workflows_in_gitea(repo, headers, url)
+        case "woodpecker":
+            return check_workflows_in_woodpecker(repo, headers, url)
+        case "drone":
+            return check_workflows_in_drone(repo, headers, url)
+        case "gitlab":
+            return check_workflows_in_gitlab(repo, headers, url)
+        case "travis":
+            return check_workflows_in_travis(repo, headers, url)
+        case "circle":
+            return check_workflows_in_circle(repo, headers, url)
+        case "jenkins":
+            return check_workflows_in_jenkins(repo, headers, url)
 
 
 def get_repo_contents(owner, repo, headers, url, ci_service):
@@ -58,8 +68,72 @@ def check_workflows_in_woodpecker(repo, headers, url):
     if response.status_code == 200:
         return repo
 
+    response = get_repo_contents(owner, repo_name, headers, url, ".woodpecker.yml")
+    if response.status_code == 200:
+        return repo
+
     response = get_repo_contents(owner, repo_name, headers, url, ".woodpecker")
     if response.status_code == 200:
         contents = response.json()
         if isinstance(contents, list):
             return repo
+
+def check_workflows_in_drone(repo, headers, url):
+    owner, repo_name = repo['owner']['login'], repo['name']
+
+    response = get_repo_contents(owner, repo_name, headers, url, ".drone.yml")
+    if response.status_code == 200:
+        return repo
+
+    response = get_repo_contents(owner, repo_name, headers, url, ".drone.yaml")
+    if response.status_code == 200:
+        return repo
+
+    return None
+
+def check_workflows_in_gitlab(repo, headers, url):
+    owner, repo_name = repo['owner']['login'], repo['name']
+
+    response = get_repo_contents(owner, repo_name, headers, url, ".gitlab-ci.yml")
+    if response.status_code == 200:
+        return repo
+
+    response = get_repo_contents(owner, repo_name, headers, url, ".gitlab-ci.yaml")
+    if response.status_code == 200:
+        return repo
+
+    return None
+
+def check_workflows_in_travis(repo, headers, url):
+    owner, repo_name = repo['owner']['login'], repo['name']
+
+    response = get_repo_contents(owner, repo_name, headers, url, ".travis.yml")
+    if response.status_code == 200:
+        return repo
+
+    response = get_repo_contents(owner, repo_name, headers, url, ".travis.yaml")
+    if response.status_code == 200:
+        return repo
+
+    return None
+
+def check_workflows_in_circle(repo, headers, url):
+    owner, repo_name = repo['owner']['login'], repo['name']
+
+    response = get_repo_contents(owner, repo_name, headers, url, ".circleci")
+    if response.status_code == 200:
+        contents = response.json()
+        for item in contents:
+            if item['type'] == 'file' and ( item['name'] == "config.yml" or item['name'] == "config.yaml"):
+                return repo
+
+    return None
+
+def check_workflows_in_jenkins(repo, headers, url):
+    owner, repo_name = repo['owner']['login'], repo['name']
+
+    response = get_repo_contents(owner, repo_name, headers, url, "Jenkinsfile")
+    if response.status_code == 200:
+        return repo
+
+    return None

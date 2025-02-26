@@ -17,8 +17,8 @@ if __name__ == "__main__":
     args = sys.argv
     if len(args) >= 1 :
         if args[1] == "getRepos":
-            rl.save_repositories_to_csv("gitea_repos_all_time_2", HEADERS, URL)
+            rl.save_repositories_to_csv("gitea_repos_list", HEADERS, URL)
         elif args[1] == "getReposWithWorkflows":
-            wl.save_repositories_to_csv("gitea_repos_all_time", HEADERS, URL, args[2])
+            wl.save_repositories_to_csv("gitea_repos_list", HEADERS, URL, args[2])
     else:
         print("Please enter a task as an argument")

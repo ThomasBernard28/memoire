@@ -4,7 +4,7 @@ import ast
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 def save_repositories_to_csv(filename, headers, url, ci_service):
-    repos = pd.read_csv(f"../data/{filename}.csv", low_memory=False)
+    repos = pd.read_csv(f"../data/gitea_actions_time/{filename}.csv", low_memory=False)
     results = []
 
     repo_list = []
@@ -24,7 +24,7 @@ def save_repositories_to_csv(filename, headers, url, ci_service):
                 results.append(result)
 
     df = pd.DataFrame(results)
-    df.to_csv(f"../data/gitea_repos_with_aws.csv", index=False)
+    df.to_csv(f"../data/gitea_repos_with_jenkins.csv", index=False)
 
 def check_ci_service_in_gitea(repo, headers, url, ci_service):
     match ci_service:

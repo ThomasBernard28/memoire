@@ -59,6 +59,10 @@
 # *.iml
 # *.ipr
 
+# Workflows dataset
+dataset
+dataset/
+
 # CMake
 cmake-build-*/
 

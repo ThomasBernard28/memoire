@@ -12,7 +12,6 @@ def parse_workflow(file_path):
     try:
         with open(file_path, 'r', encoding="utf-8") as f:
             yaml_data = yaml.load(f)
-            print(yaml_data)
     except Exception as e:
         print(f"Error while parsing YAML: {e}")
         return None
@@ -65,59 +64,3 @@ def count_workflows_per_year(df):
 
     print("Number of records per year: ")
     print(committed_counts)
-
-if __name__ == "__main__":
-    df = pd.read_csv('../dataset/200_workflowsonly.csv')
-
-    firstWorkflow = df.iloc[0]
-    file_hash = firstWorkflow['file_hash']
-
-    folder_path = f"../dataset/workflows"
-    file_path = os.path.join(folder_path, file_hash)
-
-    if not os.path.isfile(file_path):
-        print(f"File {file_path} not found.")
-    else:
-        parsed_data = parse_workflow(file_path)
-
-        if parsed_data:
-            print(f"Workflow analysé : {parsed_data['file_path']}")
-            print(f"- Nombre de lignes : {parsed_data['lines_count']}")
-            print(f"- Déclencheurs : {parsed_data['events']}")
-            print(f"- Nombre de jobs : {parsed_data['jobs_count']}")
-
-            for job, details in parsed_data["jobs"].items():
-                print(f"  * Job: {job}")
-                print(f"    - Nombre de steps: {details['steps_count']}")
-                print(f"    - Utilise GitHub Actions: {details['uses_github_actions']}")
-                print(f"    - Utilise des commandes shell: {details['uses_commands']}")
-                print(f"    - Détails des steps :")
-                for step in details["step_details"]:
-                    print(f"      - {step['name']}: uses={step['uses']}, run={step['run']}")
-
-    #count_workflows_per_year(df)
-
-    '''
-    file_uid = firstWorkflow['uid'].split('/')[-1]
-
-
-    if not os.path.isfile(file_path):
-        print(f"File {file_hash} not found.")
-    else:
-        try:
-            with open(file_path, 'r', encoding='utf-8') as f:
-                yaml_data = yaml.safe_load(f)
-                print(yaml.dump(yaml_data, default_flow_style=False))
-        except yaml.YAMLError as e:
-            print(f"Error while parsing YAML: {e}")
-
-    if not os.path.isfile(previous_file_path):
-        print(f"File {previous_file_hash} not found.")
-    else:
-        try:
-            with open(previous_file_path, 'r', encoding='utf-8') as f:
-                yaml_data = yaml.safe_load(f)
-                print(yaml.dump(yaml_data, default_flow_style=False))
-        except yaml.YAMLError as e:
-            print(f"Error while parsing YAML: {e}")
-    '''

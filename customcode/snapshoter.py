@@ -14,10 +14,36 @@ def extract_snapshot(df, year):
     snapshot_df = df[
         (df['committed_date'] >= lower_bound_date) &
         (df['committed_date'] <= date)
-    ]
+    ].copy()
 
     return snapshot_df
 
+def delete_uid_with_invalid_yaml(df):
+    '''
+    This method is used to delete all the records for each uid that has at least one invalid workflow (valid_yaml = True)
+    :param df: The dataframe to filter
+    :return: Filtered dataframe
+    '''
+
+    # First identify the uids that have at least one invalid workflow
+    invalid_uids = df.loc[(df['valid_yaml'] == False), 'uid'].unique()
+
+    # Then filter the dataframe to exclude these uids
+    filtered_df = df[~df['uid'].isin(invalid_uids)].copy()
+
+    return filtered_df
+
+def delete_invalid_yaml_records(df):
+    '''
+    This method is used to delete all the records that are invalid (valid_yaml = False)
+    It differs from the previous method as it only deletes the invalid and record and not the whole uid
+    :param df: The dataframe to filter
+    :return: Filtered dataframe
+    '''
+
+    filtered_df = df[df['valid_yaml'] == True].copy()
+
+    return filtered_df
 
 def get_most_recent_workflows(snapshot, year):
     '''

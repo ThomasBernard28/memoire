@@ -2,19 +2,25 @@ import pandas as pd
 import datetime
 
 def extract_snapshot(df, year):
+    '''
+    This method is used to extract a snapshot of the dataframe at a specific date based on the year
+    :param df: The dataframe from which to extract the snapshot
+    :param year: The year of the snapshot
+    :return: The snapshot dataframe
+    '''
     # As repositories have been cloned between 2024-10-09 and 2024-10-10, we will consider snapshots to be around 202x-10-10
-
-    date = datetime.datetime(year, 10, 10)
-    lower_bound_date = date - datetime.timedelta(days=30)
+    local_df = df.copy()
+    snpashot_date = datetime.datetime(year, 10, 10)
 
     # Convert the committed_date (int) to a datetime object
-    df['committed_date'] = pd.to_datetime(df['committed_date'], unit='s')
+    local_df['committed_date'] = pd.to_datetime(local_df['committed_date'], unit='s')
 
-    # Filter repositories that were committed before the snapshot date with a limit of 1 month
-    snapshot_df = df[
-        (df['committed_date'] >= lower_bound_date) &
-        (df['committed_date'] <= date)
-    ].copy()
+    # Filter repositories that were committed after the snapshot date to keep only the ones that were committed before
+    filtered_df = local_df[local_df['committed_date'] <= snpashot_date].copy()
+
+    # Then sort the dataframe by commited_date and keep only the latest one for each uid
+    filtered_df.sort_values(by='committed_date', inplace=True)
+    snapshot_df = filtered_df.drop_duplicates(subset='uid', keep='last').copy()
 
     return snapshot_df
 
@@ -42,23 +48,32 @@ def delete_invalid_yaml_records(df):
     '''
 
     filtered_df = df[df['valid_yaml'] == True].copy()
+    filtered_df = filtered_df[filtered_df['valid_yaml'].notna()].copy()
 
     return filtered_df
 
-def get_most_recent_workflows(snapshot, year):
-    '''
-    This method is used to get the most recent workflow for each uid in the snapshot.
-    The goal is also to exclude invalid workflows (invalid_yaml = True)
-    :param year: The year of the snapshot
-    :param snapshot:  dataframe
-    :return: A filtered dataframe containing the most recent workflow for each uid
-    '''
-    snapshot_date = datetime.datetime(year, 10, 10)
 
-    snapshot['days_from_date'] = (snapshot['committed_date'] - snapshot_date).abs()
+if __name__ == "__main__":
+    df = pd.read_csv('../dataset/200_workflowsonly.csv')
+    df = df.dropna(subset=['file_hash'])
+    df['valid_yaml'] = df['valid_yaml'].astype(bool)
+    print(f"Total number of records: {df.shape[0]}")
 
-    most_recent_workflows = snapshot.loc[
-        snapshot.groupby('uid')['days_from_date'].idxmin()
-    ]
+    print("------ Snapshot without filtering")
+    year = 2019
+    while year <= 2024:
+        snapshot = extract_snapshot(df, year)
+        print(f"Year : {year}")
+        print(f"Number of workflows in the snapshot: {snapshot.shape[0]}\n")
+        year += 1
 
-    return most_recent_workflows
+    print("------ Snapshot with filtering the invalid workflows")
+
+    filtered_df = delete_invalid_yaml_records(df)
+
+    year = 2019
+    while year <= 2024:
+        snapshot = extract_snapshot(filtered_df, year)
+        print(f"Year: {year}")
+        print(f"Number of workflows in the snapshot: {snapshot.shape[0]}\n")
+        year += 1

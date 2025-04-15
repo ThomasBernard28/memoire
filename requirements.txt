@@ -2,3 +2,5 @@ requests
 pandas
 duckdb
 ruamel.yaml
+tabulate
+altair

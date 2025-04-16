@@ -12,7 +12,7 @@ def pie_chart_by_year(df, year):
 
     return alt.Chart(data).mark_arc().encode(
         theta=alt.Theta(field="Percentage", type="quantitative"),
-        color=alt.Color(field="Language", type="nominal", scale=alt.Scale(range=color_palette)),
+        color=alt.Color(field="Language", type="nominal", scale=alt.Scale(range=color_palette), sort=alt.SortField(field="Percentage", order="descending")),
         tooltip=["Language", "Percentage"]
     ).properties(
         title=f"Language distribution in {year}",

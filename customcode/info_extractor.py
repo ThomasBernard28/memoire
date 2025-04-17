@@ -1,5 +1,8 @@
+from collections import Counter
+
 import pandas as pd
 from snapshoter import *
+import parser
 
 
 def delete_duplicate_and_reformat_repository_name(nunique_df):
@@ -60,10 +63,18 @@ def extract_repos_characteristics(snapshot):
 
     median_characteristics = merged[characteristics].median()
 
-    mean_characteristics = merged[characteristics].mean()
+    return median_characteristics
 
-    return median_characteristics, mean_characteristics
 
+def extract_events_from_parsed(parsed_workflows):
+    results = []
+
+    for repository, parsed_workflow in parsed_workflows:
+        events = parser.extract_events(parsed_workflow)
+        if events:
+            results.append((repository, events))
+
+    return results
 
 if __name__ == "__main__":
     df = pd.read_csv('../dataset/200_workflowsonly.csv')
@@ -71,7 +82,8 @@ if __name__ == "__main__":
     df['valid_yaml'] = df['valid_yaml'].astype(bool)
 
     filtered_df = delete_invalid_yaml_records(df)
-    snapshot = extract_snapshot(filtered_df, 2023)
+    snapshot = extract_snapshot(filtered_df, 2019)
+    parsed_workflows = parser.parse_snapshot(snapshot)
 
     '''
     language_counts = extract_languages_by_repository(snapshot)
@@ -79,8 +91,10 @@ if __name__ == "__main__":
     print("Languages counts: ")
     print(language_counts)
     '''
-    median_characteristics, mean_characteristics = extract_repos_characteristics(snapshot)
+    '''
+    median_characteristics = extract_repos_characteristics(snapshot)
     print("Repos median characteristics: ")
     print(median_characteristics)
-    print("Repos mean characteristics: ")
-    print(mean_characteristics)
+    '''
+    events = extract_events_from_parsed(snapshot)
+    print(events)

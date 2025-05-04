@@ -43,6 +43,39 @@ def extract_events(yaml_data):
     else:
         return []
 
+def extract_steps(yaml_data):
+    if not isinstance(yaml_data, dict):
+        return []
+
+    steps_list = []
+    jobs = yaml_data.get("jobs", {})
+    if not isinstance(jobs, dict):
+        return []
+
+    for job_name, job in jobs.items():
+        if isinstance(job, dict):
+            steps = job.get("steps", [])
+            if isinstance(steps, list):
+                for step in steps:
+                    if isinstance(step, dict):
+                        step_info = {
+                            'job_name': job_name,
+                            'run': step.get('run'),
+                            'uses': step.get('uses'),
+                            'original_step': step
+                        }
+                        steps_list.append(step_info)
+                    else:
+                        steps_list.append({'job_name': job_name, 'bad_step_format': step})
+            else:
+                steps_list.append({'job_name': job_name, 'bad_steps_format': steps})
+        else:
+            steps_list.append({'job_name': job_name, 'bad_job_format': job})
+
+    return steps_list
+
+
+
 '''
 def parse_workflow(file_hash):
     file_path = f"{source_folder}/{file_hash}"

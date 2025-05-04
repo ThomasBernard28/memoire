@@ -1,5 +1,3 @@
-from collections import Counter
-
 import pandas as pd
 from snapshoter import *
 import parser
@@ -76,6 +74,18 @@ def extract_events_from_parsed(parsed_workflows):
 
     return results
 
+def extract_step_type_from_parsed(parsed_workflows):
+    results = []
+
+    for repository, parsed_workflow in parsed_workflows:
+        steps = parser.extract_steps(parsed_workflow)
+
+        if steps:
+            results.append((repository, steps))
+
+    return results
+
+
 if __name__ == "__main__":
     df = pd.read_csv('../dataset/200_workflowsonly.csv')
     df = df.dropna(subset=['file_hash'])
@@ -96,5 +106,8 @@ if __name__ == "__main__":
     print("Repos median characteristics: ")
     print(median_characteristics)
     '''
-    events = extract_events_from_parsed(snapshot)
-    print(events)
+    #events = extract_events_from_parsed(snapshot)
+    steps = extract_step_type_from_parsed(parsed_workflows)
+
+
+    print(steps)

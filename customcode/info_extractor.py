@@ -4,14 +4,14 @@ import parser
 
 
 def delete_duplicate_and_reformat_repository_name(nunique_df):
-    '''
+    """
     This method aims to delete the duplicated repositories from a snapshot and reformat the repository name
     to match the one in the repositories.csv file.
     :param nunique_df: The dataframe with duplicated repositories and the repository name in the format owner:repo
     :return: A unique dataframe with the repository name in the format owner/repo
-    '''
+    """
 
-    # First thing to do is to remove duplicates from the snapshot
+    # The first thing to do is to remove duplicates from the snapshot
     # Base on the repository name because a repository can have multiple workflows.
     unique_df = nunique_df.drop_duplicates(subset=['repository']).copy()
 
@@ -23,13 +23,13 @@ def delete_duplicate_and_reformat_repository_name(nunique_df):
     return unique_df
 
 def extract_languages_by_repository(snapshot):
-    '''
+    """
     This method aims to extract the languages used in different repositories base on a snapshot.
     To do so, we merge the snapshot with the repositories.csv file to retrieve only the repositories that are
     present in the snapshot.
     :param snapshot: The snapshot dataframe from which to extract the languages
     :return: A dictionary with the languages and their counts
-    '''
+    """
 
     # Process the snapshot to remove duplicates and reformat the repository name
     formatted_snapshot = delete_duplicate_and_reformat_repository_name(snapshot)
@@ -67,21 +67,21 @@ def extract_repos_characteristics(snapshot):
 def extract_events_from_parsed(parsed_workflows):
     results = []
 
-    for repository, parsed_workflow in parsed_workflows:
+    for repository, file_hash, parsed_workflow in parsed_workflows:
         events = parser.extract_events(parsed_workflow)
         if events:
-            results.append((repository, events))
+            results.append((repository, file_hash,events))
 
     return results
 
 def extract_step_type_from_parsed(parsed_workflows):
     results = []
 
-    for repository, parsed_workflow in parsed_workflows:
+    for repository, file_hash, parsed_workflow in parsed_workflows:
         steps = parser.extract_steps(parsed_workflow)
 
         if steps:
-            results.append((repository, steps))
+            results.append((repository, file_hash, steps))
 
     return results
 
@@ -106,8 +106,9 @@ if __name__ == "__main__":
     print("Repos median characteristics: ")
     print(median_characteristics)
     '''
-    #events = extract_events_from_parsed(snapshot)
-    steps = extract_step_type_from_parsed(parsed_workflows)
+    events = extract_events_from_parsed(parsed_workflows)
+    #steps = extract_step_type_from_parsed(parsed_workflows)
 
-
-    print(steps)
+    print(events[0][0])
+    print(events[0][1])
+    print(events[0][2])

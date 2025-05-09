@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 URL = "https://codeberg.org/api/v1"
 
 # TOKEN
-TOKEN = "767c59384d68c7eda2765d1c7a81ab5fdac471ca"
+TOKEN = ""
 
 # Request headers
 HEADERS = {
@@ -51,9 +51,9 @@ def check_workflows_in_gitea(repo):
     if contents.status_code == 200:
         contents = contents.json()
         for item in contents:
-            if item['type'] == 'dir' and item['name'] == '.forgejo/workflows':
+            if item['type'] == 'dir' and item['name'] == ".forgejo/workflows":
                 return repo
-            elif item['type'] == 'file' and '.forgejo/workflows' in item['path']:
+            elif item['type'] == 'file' and ".forgejo/workflows" in item['path']:
                 return repo
     return None
 
@@ -63,7 +63,7 @@ def main():
     #filtered_repos = [repo for repo in repositories if datetime.strptime(repo['updated_at'], "%Y-%m-%dT%H:%M:%SZ") > LIMIT_DATE and not repo['empty']]
     #print(len(filtered_repos))
     results = []
-    with open('../data/reposForgejoListNoRestriction.txt', 'r') as f:
+    with open("../data/reposForgejoListNoRestriction.txt", 'r') as f:
         filtered_repos = f.readlines()
 
 
@@ -78,7 +78,7 @@ def main():
 
 if __name__ == "__main__":
     results = main()
-    with open('../data/reposForgejoNoRestrictions.txt', 'w') as f:
+    with open("../data/reposForgejoNoRestrictions.txt", 'w') as f:
         for repo in results:
             f.write(f"{repo['owner']['login']}/{repo['name']}\n")
     print(len(results))

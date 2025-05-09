@@ -5,7 +5,7 @@ import workflowsLister as wl
 # Default URL
 URL = "https://gitea.com/api/v1"
 # TOKEN
-TOKEN = "82b9c59c55aa72fabd8bdde707ccdfd165db8160"
+TOKEN = ""
 
 # Request headers
 HEADERS = {

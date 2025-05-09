@@ -6,8 +6,15 @@ yaml = YAML(typ='safe')
 source_folder = "../dataset/workflows"
 
 def parse_snapshot(snapshot):
+    """
+    This method will call a parsing method on each of the workflow files from a snapshot.
+    :param snapshot: The snapshot of the dataset that contains the workflow files.
+    :return: A list of tuples with the repository name, file hash and the parsed workflow.
+    """
     parsed_workflows = []
+    # The first element returned by iterrows() is the index, so I use _ to ignore it.
     for _, workflow in snapshot.iterrows():
+        # Then I call the parse_workflow method to parse the workflow file.
         parsed_workflow = parse_workflow(workflow['file_hash'])
         if parsed_workflow:
             parsed_workflows.append((workflow['repository'], workflow['file_hash'] ,parsed_workflow))
@@ -15,7 +22,15 @@ def parse_snapshot(snapshot):
     return parsed_workflows
 
 def parse_workflow(file_hash):
+    """
+    The goal of this method is to parse a workflow file using the ruamel.yaml library.
+    The workflow file is stored locally in the given dataset folder.
+    :param file_hash: The file hash of the workflow file to find it in the dataset.
+    :return: The result of the parsing using ruamel.yaml.
+    """
+
     file_path = f"{source_folder}/{file_hash}"
+    # Check if the file exists
     if not os.path.isfile(file_path):
         print(f"File {file_hash} not found.")
         return None
@@ -30,11 +45,23 @@ def parse_workflow(file_hash):
     return yaml_data
 
 def extract_events(yaml_data):
+    """
+    This method aims to extract the different trigger events from a parsed workflow file.
+    This workflow file is represented as yaml_data in the ruamel.yaml format.
+    :param yaml_data: The parsed workflow file.
+    :return: A list of all the trigger events from the workflow file.
+    """
+
+    # If the yaml_data is not a dictionary, return an empty list
+    # It means that the file is not a valid workflow file
     if not isinstance(yaml_data, dict):
         return []
 
+    # Get the "on" key from the yaml_data
     event_data = yaml_data.get("on", [])
 
+    # Then check the different types for the representation of the events.
+    # Return the events as a list of strings depending on the type of the event_data.
     if isinstance(event_data, dict):
         return list(event_data.keys())
     elif isinstance(event_data, list):
@@ -44,11 +71,32 @@ def extract_events(yaml_data):
     else:
         return []
 
+def extract_jobs(yaml_data):
+    if not isinstance(yaml_data, dict):
+        return []
+
+    jobs = yaml_data.get("jobs", {})
+    if not isinstance(jobs, dict):
+        return []
+
+    return jobs
+
+
+
 def extract_steps(yaml_data):
+    """
+    This method aims to extract the different steps from a parsed workflow file.
+    :param yaml_data: The parsed workflow file.
+    :return: A list of all the steps from the workflow file.
+    """
+
+    # If the yaml_data is not a dictionary, return an empty list
+    # It means that the file is not a valid workflow file
     if not isinstance(yaml_data, dict):
         return []
 
     steps_list = []
+    # First, get the jobs, they contain the steps
     jobs = yaml_data.get("jobs", {})
     if not isinstance(jobs, dict):
         return []

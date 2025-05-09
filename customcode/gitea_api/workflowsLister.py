@@ -42,6 +42,7 @@ def check_ci_service_in_gitea(repo, headers, url, ci_service):
             return check_workflows_in_circle(repo, headers, url)
         case "jenkins":
             return check_workflows_in_jenkins(repo, headers, url)
+    return None
 
 
 def get_repo_contents(owner, repo, headers, url, ci_service):
@@ -55,9 +56,9 @@ def check_workflows_in_gitea(repo, headers, url):
     if contents.status_code == 200:
         contents = contents.json()
         for item in contents:
-            if item['type'] == 'dir' and item['name'] == '.gitea/workflows':
+            if item['type'] == 'dir' and item['name'] == ".gitea/workflows":
                 return repo
-            elif item['type'] == 'file' and '.gitea/workflows' in item['path']:
+            elif item['type'] == 'file' and ".gitea/workflows" in item['path']:
                 return repo
     return None
 
@@ -77,6 +78,9 @@ def check_workflows_in_woodpecker(repo, headers, url):
         contents = response.json()
         if isinstance(contents, list):
             return repo
+        return None
+    return None
+
 
 def check_workflows_in_drone(repo, headers, url):
     owner, repo_name = repo['owner']['login'], repo['name']

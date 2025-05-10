@@ -81,8 +81,6 @@ def extract_jobs(yaml_data):
 
     return jobs
 
-
-
 def extract_steps(yaml_data):
     """
     This method aims to extract the different steps from a parsed workflow file.
@@ -122,6 +120,23 @@ def extract_steps(yaml_data):
             steps_list.append({'job_name': job_name, 'bad_job_format': job})
 
     return steps_list
+
+def extract_global_strategies(jobs):
+    if not isinstance(jobs, dict):
+        return []
+
+    strategies_list = []
+
+    for job_name, job in jobs.items():
+        if isinstance(job, dict):
+            strategy = job.get("strategy", [])
+            if isinstance(strategy, dict):
+                matrix = strategy.get("matrix", None)
+                if isinstance(matrix, dict) and matrix:
+                    strategies_list.append(matrix)
+
+    return strategies_list
+
 
 def count_workflows_per_year(df):
     df['committed_year'] = pd.to_datetime(df['committed_date'], unit='s').dt.year

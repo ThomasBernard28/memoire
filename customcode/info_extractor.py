@@ -81,8 +81,22 @@ def extract_events_from_parsed(parsed_workflows):
     for repository, file_hash, parsed_workflow in parsed_workflows:
 
         events = parser.extract_events(parsed_workflow)
-        if events:
-            results.append((repository, file_hash,events))
+
+        results.append((repository, file_hash, events))
+
+    return results
+
+def extract_global_strategies_from_parsed(parsed_workflows):
+
+    results = []
+
+    for repository, file_hash, parsed_workflow in parsed_workflows:
+
+        jobs = parser.extract_jobs(parsed_workflow)
+
+        strategies = parser.extract_global_strategies(jobs) or []
+
+        results.append((repository, file_hash, strategies))
 
     return results
 
@@ -168,123 +182,69 @@ def extract_step_type_from_parsed(parsed_workflows):
     for repository, file_hash, parsed_workflow in parsed_workflows:
         steps = parser.extract_steps(parsed_workflow)
 
-        if steps:
-            results.append((repository, file_hash, steps))
+        results.append((repository, file_hash, steps))
 
     return results
 
-def count_steps(steps_snapshots, repositories):
+def count_global_strategies(strategies_snapshots, repositories):
 
-    steps_dataframes = []
-    top10_actions_dataframes = []
-    yearly_steps_medians = []
-
+    strategies_dataframes = []
+    yearly_strategies_medians = []
     counter = 0
 
-    for year, steps_by_year in steps_snapshots:
+    # Iterate through the strategies snapshots
+    for year, strategies in strategies_snapshots:
 
-        # Counters to track the number of steps
-        total_steps = 0
-        uses_steps = 0
-        run_steps = 0
+        workflows_using_strategies = set()
+        repo_using_strategies = set()
+        strategy_by_workflow_counts = {}
 
-        # Dictionary to track the different actions used in the workflows
-        actions_used_by_workflows = {}
-        # Dictionary to track the different actions used in the repositories
-        actions_used_by_repositories = {}
+        for repo, file_hash, strategy_list in strategies:
 
-        # Dictionary to track the number of steps by workflow
-        steps_by_workflow = {}
+            for strategy in strategy_list:
 
-        # Sets to track repositories using 'run' and 'uses' steps while avoiding duplicates
-        repos_with_uses = set()
-        repos_with_run = set()
+                if strategy:
 
-        for repository, workflow, steps in steps_by_year:
-            has_uses = False
-            has_run = False
+                    # Add a workflow to the set of workflows using strategies when a strategy is found
+                    workflows_using_strategies.add(file_hash)
 
-            for step in steps:
-                total_steps += 1
+                    # Add a repository to the set of repositories using strategies when a strategy is found
+                    repo_using_strategies.add(repo)
 
-                if workflow not in steps_by_workflow:
-                    steps_by_workflow[workflow] = 0
-                steps_by_workflow[workflow] += 1
+                    # This count is used to determine the number of strategies by workflow to compute the median
+                    if file_hash not in strategy_by_workflow_counts:
+                        strategy_by_workflow_counts[file_hash] = 0
+                    strategy_by_workflow_counts[file_hash] += 1
 
-                if step.get('uses') is not None:
-                    uses_steps += 1
-                    has_uses = True
-                    # Extract the action name from the step
-                    # Keep the part before the '@' symbol
-                    # The other part is the version of the action
-                    action = step['uses'].split('@')[0]
 
-                    # Adding action to the count to compute the proportion of steps using it
-                    if action not in actions_used_by_workflows:
-                        actions_used_by_workflows[action] = 0
-                    actions_used_by_workflows[action] += 1
-
-                    # For each action, create a set in the dictionary.
-                    # The key of the dictionary is the action name, the value is a set of repositories using it.
-                    if action not in actions_used_by_repositories:
-                        actions_used_by_repositories[action] = set()
-                    actions_used_by_repositories[action].add(repository)
-
-                if step.get('run') is not None:
-                    run_steps += 1
-                    has_run = True
-
-            # Only had the repository once to the set and not everytime a 'run' or 'uses' is detected
-            if has_uses:
-                repos_with_uses.add(repository)
-
-            if has_run:
-                repos_with_run.add(repository)
-
-        step_rows = []
-
-        for action in actions_used_by_workflows:
-            action_workflow_proportion = round((actions_used_by_workflows[action] / total_steps) * 100, 2)
-            action_repo_proportion = round((len(actions_used_by_repositories[action]) / len(repositories[counter][1])) * 100, 2)
-
-            step_rows.append({
-                'action': action,
-                'step_proportion': action_workflow_proportion,
-                'repo_proportion': action_repo_proportion
-            })
-
-        event_results = {
-            'total_steps': total_steps,
-            'total_repositories': len(repositories[counter][1]),
-            'uses_proportion': round((uses_steps / total_steps) * 100, 2),
-            'run_proportion': round((run_steps / total_steps) * 100, 2),
-            'repo_uses': round((len(repos_with_uses) / len(repositories[counter][1])) * 100, 2),
-            'repo_run': round((len(repos_with_run) / len(repositories[counter][1])) * 100, 2)
+        strategy_results = {
+            'workflow_proportion': round((len(workflows_using_strategies) / len(strategies)) * 100, 2),
+            'repo_proportion' : round((len(repo_using_strategies) / len(repositories[counter][1])) * 100, 2)
         }
 
         workflow_rows = []
-        for workflow in steps_by_workflow:
+        for workflow in strategy_by_workflow_counts:
             workflow_rows.append({
                 'workflow': workflow,
-                'step_count': steps_by_workflow[workflow]
+                'strategy_count': strategy_by_workflow_counts[workflow]
             })
 
-        # Create the step dataframe
-        steps_df = pd.DataFrame([event_results])
-        steps_dataframes.append((year, steps_df))
+        # Create the strategy dataframe
+        strategy_repartition_df = pd.DataFrame([strategy_results])
+        strategies_dataframes.append((year, strategy_repartition_df))
 
-        # Create the top 10 actions dataframe
-        actions_df = pd.DataFrame(step_rows).sort_values(by='step_proportion', ascending=False).reset_index(drop=True)
-        top10_actions_dataframes.append((year, actions_df.head(10)))
-
-        # Compute the median of the steps by workflow for the present year
-        steps_by_workflow_df = pd.DataFrame(workflow_rows)
-        yearly_median = steps_by_workflow_df['step_count'].median()
-        yearly_steps_medians.append((year, yearly_median))
+        # Compute the median of the strategies by workflow for the present year
+        strategy_by_workflow_df = pd.DataFrame(workflow_rows)
+        yearly_median = strategy_by_workflow_df['strategy_count'].median()
+        yearly_strategies_medians.append((year, yearly_median))
 
         counter += 1
 
-    return steps_dataframes, top10_actions_dataframes, yearly_steps_medians
+
+    return strategies_dataframes, yearly_strategies_medians
+
+
+
 
 if __name__ == "__main__":
     df = pd.read_csv('../dataset/200_workflowsonly.csv')

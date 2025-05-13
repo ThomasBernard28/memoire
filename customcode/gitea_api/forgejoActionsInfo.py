@@ -2,6 +2,9 @@ import requests as rq
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
+"""
+This script file was only used as a test on the Forgejo API to know if there were more repositories than on Gitea
+"""
 
 # Default URL
 URL = "https://codeberg.org/api/v1"

@@ -18,6 +18,8 @@ def parse_snapshot(snapshot):
         parsed_workflow = parse_workflow(workflow['file_hash'])
         if parsed_workflow:
             parsed_workflows.append((workflow['repository'], workflow['file_hash'] ,parsed_workflow))
+        else:
+            print("Workflow could not be parsed")
 
     return parsed_workflows
 
@@ -44,7 +46,7 @@ def parse_workflow(file_hash):
 
     return yaml_data
 
-def extract_events(yaml_data):
+def parse_events(yaml_data):
     """
     This method aims to extract the different trigger events from a parsed workflow file.
     This workflow file is represented as yaml_data in the ruamel.yaml format.
@@ -81,7 +83,7 @@ def extract_jobs(yaml_data):
 
     return jobs
 
-def extract_steps(yaml_data):
+def parse_steps(yaml_data):
     """
     This method aims to extract the different steps from a parsed workflow file.
     :param yaml_data: The parsed workflow file.
@@ -94,13 +96,15 @@ def extract_steps(yaml_data):
         return []
 
     steps_list = []
-    # First, get the jobs, they contain the steps
+    # First, get the jobs. They contain the steps
     jobs = yaml_data.get("jobs", {})
     if not isinstance(jobs, dict):
         return []
 
+    # Iterate through all the jobs
     for job_name, job in jobs.items():
         if isinstance(job, dict):
+            # Extract the steps if there are any or assign an empty list
             steps = job.get("steps", [])
             if isinstance(steps, list):
                 for step in steps:
@@ -112,16 +116,15 @@ def extract_steps(yaml_data):
                             'original_step': step
                         }
                         steps_list.append(step_info)
-                    else:
-                        steps_list.append({'job_name': job_name, 'bad_step_format': step})
-            else:
-                steps_list.append({'job_name': job_name, 'bad_steps_format': steps})
-        else:
-            steps_list.append({'job_name': job_name, 'bad_job_format': job})
 
     return steps_list
 
-def extract_global_strategies(jobs):
+def parse_strategies(jobs):
+    """
+    This method parses matrix strategies directly from jobs previously parsed
+    :param jobs: The parsed job from which to extract strategies.
+    :return: A list of all the strategies from the jobs.
+    """
     if not isinstance(jobs, dict):
         return []
 
@@ -137,8 +140,45 @@ def extract_global_strategies(jobs):
 
     return strategies_list
 
+def parsed_global_permissions(yaml_data):
+    """
+    This method is used to parse the global permissions from a parsed workflow file.
+    :param yaml_data: The parsed workflow file as a dictionary.
+    :return: A list of all the global permissions from the workflow file.
+    """
+    if not isinstance(yaml_data, dict):
+        return []
+
+    permissions = yaml_data.get("permissions", [])
+    if not isinstance(permissions, dict):
+        return []
+
+    return permissions
+
+def parse_jobs_permissions(jobs):
+    """
+    This method is used to parse the jobs' permissions from a parsed workflow file.
+    :param jobs: The list of parsed jobs from the workflow file.
+    :return: A list of all the jobs' permissions from the workflow file.
+    """
+    if not isinstance(jobs, dict):
+        return []
+
+    permissions_list = []
+    for job_name, job in jobs.items():
+        if isinstance(job, dict):
+            permissions = job.get("permissions", [])
+            if isinstance(permissions, dict):
+                permissions_list.append(permissions)
+
+    return permissions_list
+
 
 def count_workflows_per_year(df):
+    """
+    This method is used to count the number of workflows per year.
+    :param df: The dataframe containing all the workflows
+    """
     df['committed_year'] = pd.to_datetime(df['committed_date'], unit='s').dt.year
     committed_counts = df['committed_year'].value_counts().sort_index()
 

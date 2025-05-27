@@ -134,7 +134,7 @@ def extract_global_permissions_from_parsed(parsed_workflows):
 
     for repository, file_hash, parsed_workflow in parsed_workflows:
 
-        permissions = parser.extract_global_permissions(parsed_workflow)
+        permissions = parser.parse_global_permissions(parsed_workflow)
 
         results.append((repository, file_hash, permissions))
 

@@ -140,7 +140,7 @@ def parse_strategies(jobs):
 
     return strategies_list
 
-def parsed_global_permissions(yaml_data):
+def parse_global_permissions(yaml_data):
     """
     This method is used to parse the global permissions from a parsed workflow file.
     :param yaml_data: The parsed workflow file as a dictionary.

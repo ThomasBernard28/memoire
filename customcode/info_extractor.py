@@ -432,7 +432,7 @@ def count_steps(steps_snapshots, repositories):
 
         # Create the top 10 actions dataframe
         actions_df = pd.DataFrame(step_rows).sort_values(by='step_proportion', ascending=False).reset_index(drop=True)
-        top10_actions_dataframes.append((year, actions_df.head(10)))
+        top10_actions_dataframes.append((year, actions_df.head(30)))
 
         # Compute the median of the steps by workflow for the present year
         steps_by_workflow_df = pd.DataFrame(workflow_rows)

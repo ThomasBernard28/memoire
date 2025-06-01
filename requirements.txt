@@ -4,3 +4,4 @@ duckdb
 ruamel.yaml
 tabulate
 altair
+vl-convert-python

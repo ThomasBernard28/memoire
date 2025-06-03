@@ -42,7 +42,7 @@ def extract_languages_by_repository(snapshot):
 
     language_counts = merged['language'].value_counts().to_dict()
 
-    return language_counts, len(merged)
+    return language_counts
 
 def extract_repos_characteristics(snapshot):
     """

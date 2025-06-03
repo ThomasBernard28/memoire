@@ -401,12 +401,12 @@ def count_steps(steps_snapshots, repositories):
         step_rows = []
 
         for action in actions_used_by_workflows:
-            action_workflow_proportion = round((actions_used_by_workflows[action] / total_steps) * 100, 2)
+            action_uses_proportion = round((actions_used_by_workflows[action] / uses_steps) * 100, 2)
             action_repo_proportion = round((len(actions_used_by_repositories[action]) / len(repositories[counter][1])) * 100, 2)
 
             step_rows.append({
                 'action': action,
-                'step_proportion': action_workflow_proportion,
+                'step_proportion': action_uses_proportion,
                 'repo_proportion': action_repo_proportion
             })
 

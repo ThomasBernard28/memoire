@@ -398,6 +398,11 @@ def count_steps(steps_snapshots, repositories):
             if has_run:
                 repos_with_run.add(repository)
 
+
+        print(f"Total steps: {total_steps}")
+        print(f"Uses steps: {uses_steps}")
+        print(f"Run steps: {run_steps}")
+
         step_rows = []
 
         for action in actions_used_by_workflows:
